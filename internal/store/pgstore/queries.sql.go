@@ -8,7 +8,7 @@ package pgstore
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const getMessage = `-- name: GetMessage :one
@@ -19,7 +19,7 @@ WHERE
     id = $1
 `
 
-func (q *Queries) GetMessage(ctx context.Context, id pgtype.UUID) (Message, error) {
+func (q *Queries) GetMessage(ctx context.Context, id uuid.UUID) (Message, error) {
 	row := q.db.QueryRow(ctx, getMessage, id)
 	var i Message
 	err := row.Scan(
@@ -39,7 +39,7 @@ FROM rooms
 WHERE id = $1
 `
 
-func (q *Queries) GetRoom(ctx context.Context, id pgtype.UUID) (Room, error) {
+func (q *Queries) GetRoom(ctx context.Context, id uuid.UUID) (Room, error) {
 	row := q.db.QueryRow(ctx, getRoom, id)
 	var i Room
 	err := row.Scan(&i.ID, &i.Theme)
@@ -54,7 +54,7 @@ WHERE
     room_id = $1
 `
 
-func (q *Queries) GetRoomMessages(ctx context.Context, roomID pgtype.UUID) ([]Message, error) {
+func (q *Queries) GetRoomMessages(ctx context.Context, roomID uuid.UUID) ([]Message, error) {
 	rows, err := q.db.Query(ctx, getRoomMessages, roomID)
 	if err != nil {
 		return nil, err
@@ -114,13 +114,13 @@ RETURNING "id"
 `
 
 type InsertMessageParams struct {
-	RoomID  pgtype.UUID
+	RoomID  uuid.UUID
 	Message string
 }
 
-func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) (pgtype.UUID, error) {
+func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) (uuid.UUID, error) {
 	row := q.db.QueryRow(ctx, insertMessage, arg.RoomID, arg.Message)
-	var id pgtype.UUID
+	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
 }
@@ -132,9 +132,9 @@ INSERT INTO rooms
 RETURNING "id"
 `
 
-func (q *Queries) InsertRoom(ctx context.Context, theme string) (pgtype.UUID, error) {
+func (q *Queries) InsertRoom(ctx context.Context, theme string) (uuid.UUID, error) {
 	row := q.db.QueryRow(ctx, insertRoom, theme)
-	var id pgtype.UUID
+	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
 }
@@ -147,7 +147,7 @@ WHERE
     id = $1
 `
 
-func (q *Queries) MarkMessageAsAnswered(ctx context.Context, id pgtype.UUID) error {
+func (q *Queries) MarkMessageAsAnswered(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, markMessageAsAnswered, id)
 	return err
 }
@@ -161,7 +161,7 @@ WHERE
 RETURNING reaction_count
 `
 
-func (q *Queries) ReactToMessage(ctx context.Context, id pgtype.UUID) (int64, error) {
+func (q *Queries) ReactToMessage(ctx context.Context, id uuid.UUID) (int64, error) {
 	row := q.db.QueryRow(ctx, reactToMessage, id)
 	var reaction_count int64
 	err := row.Scan(&reaction_count)
@@ -177,7 +177,7 @@ WHERE
 RETURNING reaction_count
 `
 
-func (q *Queries) RemoveReactionFromMessage(ctx context.Context, id pgtype.UUID) (int64, error) {
+func (q *Queries) RemoveReactionFromMessage(ctx context.Context, id uuid.UUID) (int64, error) {
 	row := q.db.QueryRow(ctx, removeReactionFromMessage, id)
 	var reaction_count int64
 	err := row.Scan(&reaction_count)

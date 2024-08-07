@@ -5,18 +5,18 @@
 package pgstore
 
 import (
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 type Message struct {
-	ID            pgtype.UUID
-	RoomID        pgtype.UUID
+	ID            uuid.UUID
+	RoomID        uuid.UUID
 	Message       string
 	ReactionCount int64
 	Answered      bool
 }
 
 type Room struct {
-	ID    pgtype.UUID
+	ID    uuid.UUID
 	Theme string
 }
