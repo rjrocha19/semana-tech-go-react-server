@@ -42,7 +42,7 @@ func NewHandler(q *pgstore.Queries) http.Handler {
 	r.Get("/subscribe/{room_id}", a.handleSubscribe)
 
 	r.Route("/api", func(r chi.Router) {
-		r.Route("/rooms", func(r chi.Route) {
+		r.Route("/rooms", func(r chi.Router) {
 			r.Post("/", a.handleCreateRoom)
 			r.Get("/", a.handleGetRooms)
 
@@ -67,6 +67,17 @@ func NewHandler(q *pgstore.Queries) http.Handler {
 func (h apiHandler) handleSubscribe(w http.ResponseWriter, r *http.Request) {
 	rawRoomID := chi.URLParam(r, "room_id")
 	roomID, err := uuid.Parse(rawRoomID)
+
+	if err != nil {
+		http.Error(w, "Invalid room ID", http.StatusBadRequest)
+		return
+	}
+
+	_, err = h.q.GetRoom(r.Context(), roomID)
+	if err != nil {
+		http.Error(w, "Room not found", http.StatusNotFound)
+		return
+	}
 }
 func (h apiHandler) handleCreateRoom(w http.ResponseWriter, r *http.Request)              {}
 func (h apiHandler) handleGetRooms(w http.ResponseWriter, r *http.Request)                {}
