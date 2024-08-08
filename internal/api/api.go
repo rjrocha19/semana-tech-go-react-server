@@ -74,6 +74,15 @@ func NewHandler(q *pgstore.Queries) http.Handler {
 	return a
 }
 
+const (
+	MessageKindMessage = "message_created"
+)
+
+type MessageMessageCreated struct {
+	ID      string `json:"id"`
+	Message string `json:"message"`
+}
+
 type Message struct {
 	Kind   string `json:"kind"`
 	Value  any    `json:"value"`
@@ -208,6 +217,14 @@ func (h apiHandler) handleCreateRoomMessage(w http.ResponseWriter, r *http.Reque
 	data, _ := json.Marshal(response{ID: messageID.String()})
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = w.Write(data)
+
+	go h.notifyClients(Message{
+		Kind: MessageKindMessage, 
+		Value: MessageMessageCreated{
+			ID:      messageID.String(),
+			Message: body.Message,
+		}, 
+		RoomID: rawRoomID})
 
 }
 func (h apiHandler) handleGetRoomMessages(w http.ResponseWriter, r *http.Request)         {}
